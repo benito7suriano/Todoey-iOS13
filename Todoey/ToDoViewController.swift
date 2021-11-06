@@ -9,7 +9,8 @@
 import UIKit
 
 class ToDoViewController: UITableViewController {
-    
+
+    let defaults = UserDefaults.standard
     var itemArray = [
         "Eat soup",
         "Buy bananas",
@@ -19,6 +20,9 @@ class ToDoViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+            itemArray = items
+        }
     }
     
     //MARK:- UITableView Setup
@@ -39,7 +43,7 @@ class ToDoViewController: UITableViewController {
        return cell
     }
     
-    //MARK:- TableView functionality
+    //MARK:- Check/Uncheck specific row
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // print(itemArray[indexPath.row])
@@ -59,10 +63,13 @@ class ToDoViewController: UITableViewController {
         var textField = UITextField()
         
         let alert = UIAlertController(title: "Add a New Item", message: "", preferredStyle: .alert)
-        
         let action = UIAlertAction(title: "Create new item", style: .default) { (action) in
             
             self.itemArray.append(textField.text!)
+            
+            // persist data in UserDefaults instance
+            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            
             self.tableView.reloadData()
             print("Just added a new item")
         }
@@ -77,6 +84,5 @@ class ToDoViewController: UITableViewController {
         
         present(alert, animated: true, completion: nil)
     }
-    
     
 }
