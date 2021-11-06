@@ -11,16 +11,26 @@ import UIKit
 class ToDoViewController: UITableViewController {
 
     let defaults = UserDefaults.standard
-    var itemArray = [
-        "Eat soup",
-        "Buy bananas",
-        "Code Swift"
-    ]
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    var itemArray = [Item]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+        
+        print(dataFilePath)
+        
+        // dummy data
+        let newItem = Item(title: "Find milk")
+        itemArray.append(newItem)
+        let newItem2 = Item(title: "Get sugar")
+        itemArray.append(newItem2)
+        let newItem3 = Item(title: "Cook meat")
+        itemArray.append(newItem3)
+        let newItem4 = Item(title: "Code repeat")
+        itemArray.append(newItem4)
+        
+        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
             itemArray = items
         }
     }
@@ -38,51 +48,71 @@ class ToDoViewController: UITableViewController {
        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
        // Configure the cell’s contents.
-        cell.textLabel?.text = itemArray[indexPath.row]
+        let item = itemArray[indexPath.row]
         
-       return cell
+        cell.textLabel?.text = item.title
+        
+        cell.accessoryType = item.checked ? .checkmark : .none
+        
+        return cell
     }
     
     //MARK:- Check/Uncheck specific row
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // print(itemArray[indexPath.row])
-            
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        } else {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
+        
+        itemArray[indexPath.row].checked = !itemArray[indexPath.row].checked
+        
+        self.saveItems()
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
     //MARK:- Add new items
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
-        
+
         var textField = UITextField()
-        
+
         let alert = UIAlertController(title: "Add a New Item", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Create new item", style: .default) { (action) in
+
+            let newItem = Item(title: textField.text!)
             
-            self.itemArray.append(textField.text!)
+            self.itemArray.append(newItem)
+
+            // persist data in UserDefaults instance - DOESN'T WORK BECAUSE DEFAULTS DOESN'T ACCEPT CUSTOM OBJS
+            // self.defaults.set(self.itemArray, forKey: "TodoListArray")
             
-            // persist data in UserDefaults instance
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            self.saveItems()
             
-            self.tableView.reloadData()
             print("Just added a new item")
         }
-        
+
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "New item..."
-            
             textField = alertTextField
         }
-        
+
         alert.addAction(action)
-        
+
         present(alert, animated: true, completion: nil)
+        
+    }
+    
+    //MARK:- Save Items utility method
+    
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error encoding item array: \(error)")
+        }
+        
+        self.tableView.reloadData()
     }
     
 }
