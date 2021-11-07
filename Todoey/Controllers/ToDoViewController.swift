@@ -16,23 +16,8 @@ class ToDoViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        loadItems()
         
-        print(dataFilePath)
-        
-        // dummy data
-        let newItem = Item(title: "Find milk")
-        itemArray.append(newItem)
-        let newItem2 = Item(title: "Get sugar")
-        itemArray.append(newItem2)
-        let newItem3 = Item(title: "Cook meat")
-        itemArray.append(newItem3)
-        let newItem4 = Item(title: "Code repeat")
-        itemArray.append(newItem4)
-        
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            itemArray = items
-        }
     }
     
     //MARK:- UITableView Setup
@@ -100,7 +85,7 @@ class ToDoViewController: UITableViewController {
         
     }
     
-    //MARK:- Save Items utility method
+    //MARK:- Save items utility method
     
     func saveItems() {
         let encoder = PropertyListEncoder()
@@ -115,5 +100,17 @@ class ToDoViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
+    //MARK:- Load items utility method
+    
+    func loadItems() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Error while decoding: \(error)")
+            }
+        }
+    }
 }
   
